@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE INSTALACIÓN AUTOMÁTICA DE POSTGRESQL EN UBUNTU
-# ==============================================================================
-# Notas: Ejecutar como root o con sudo.
+# SCRIPT DE INSTALACIÓN AUTOMÁTICA DE POSTGRESQL (CORREGIDO PARA UBUNTU RECIENTE)
 # ==============================================================================
 
 # --- CONFIGURACIÓN ---
@@ -20,12 +18,14 @@ echo "=== [2/5] Instalando dependencias necesarias ==="
 sudo apt-get install -y gnupg2 wget ca-certificates lsb-release curl
 
 echo "=== [3/5] Añadiendo el repositorio oficial de PostgreSQL ==="
-# Importar la llave GPG oficial
-install -d /etc/apt/keyrings
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg
+# Asegurar la existencia del directorio de llaveros
+sudo install -d /etc/apt/keyrings
 
-# Añadir el repositorio a las fuentes de APT
-echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+# Importar la llave GPG oficial de PostgreSQL
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor --yes -o /etc/apt/keyrings/postgresql.gpg
+
+# CORRECCIÓN: Forzamos la rama 'noble' para evitar el error 404 de compatibilidad en entornos de desarrollo avanzados
+echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
 
 echo "=== [4/5] Instalando PostgreSQL ${PG_VERSION} y componentes esenciales ==="
 sudo apt-get update
@@ -35,11 +35,6 @@ echo "=== [5/5] Verificando y habilitando el servicio ==="
 sudo systemctl daemon-reload
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
-
-# --- CONFIGURACIÓN DE FIREWALL (OPCIONAL) ---
-# Si necesitas acceso remoto, descomenta las siguientes líneas para abrir el puerto 5432
-# echo "=== [EXTRA] Configurando UFW para permitir tráfico en el puerto 5432 ==="
-# sudo ufw allow 5432/tcp
 
 echo "=============================================================================="
 echo " ¡PostgreSQL ${PG_VERSION} se ha instalado y está corriendo exitosamente! "

@@ -7,10 +7,6 @@ echo "=================================================="
 echo " Airflow Installation with PostgreSQL Backend"
 echo "=================================================="
 
-# Credenciales de tu Postgres actual (Proporcionadas por el usuario)
-POSTGRES_ADMIN_USER="guidoriosciaffaroni@gmail.com"
-POSTGRES_ADMIN_PASSWORD="123456"
-
 # Credenciales NUEVAS que crearemos y usará Airflow de forma interna
 AIRFLOW_DB_USER="airflow_user"
 AIRFLOW_DB_PASS="airflow_pass" 
@@ -21,18 +17,12 @@ echo "--> Installing system and postgres development dependencies..."
 sudo apt update
 sudo apt install python3 python3-pip python3-venv build-essential libssl-dev libffi-dev python3-dev libpq-dev -y
 
-# 2. Crear la Base de Datos y el Usuario dedicado en tu Postgres
+# 2. Crear la Base de Datos y el Usuario dedicado en tu Postgres de forma local
 echo "--> Creating Airflow database and user in PostgreSQL..."
-export PGPASSWORD=$POSTGRES_ADMIN_PASSWORD
 
-# Crear el usuario interno de Airflow usando tus credenciales de administrador
-psql -h localhost -U "$POSTGRES_ADMIN_USER" -d postgres -c "CREATE USER $AIRFLOW_DB_USER WITH PASSWORD '$AIRFLOW_DB_PASS';" || echo "El usuario de Airflow ya existe o aviso no crítico."
-
-# Crear la Base de Datos asignando al nuevo usuario como dueño
-psql -h localhost -U "$POSTGRES_ADMIN_USER" -d postgres -c "CREATE DATABASE $AIRFLOW_DB_NAME OWNER $AIRFLOW_DB_USER;" || echo "La base de datos de Airflow ya existe o aviso no crítico."
-
-# Limpiar variable de entorno de contraseña por seguridad
-unset PGPASSWORD
+# Usamos sudo -u postgres para autenticar directamente a través del socket del sistema operativo
+sudo -u postgres psql -c "CREATE USER $AIRFLOW_DB_USER WITH PASSWORD '$AIRFLOW_DB_PASS';" || echo "El usuario de Airflow ya existe o aviso no crítico."
+sudo -u postgres psql -c "CREATE DATABASE $AIRFLOW_DB_NAME OWNER $AIRFLOW_DB_USER;" || echo "La base de datos de Airflow ya existe o aviso no crítico."
 
 # 3. Estructurar el entorno virtual de Python
 echo "--> Setting up Python virtual environment..."
@@ -43,6 +33,8 @@ cd "$PROJECT_DIR"
 if [ ! -d "airflow_env" ]; then
     python3 -m venv airflow_env
 fi
+
+# ACTIVACIÓN DEL ENTORNO (Crucial correr el script con 'bash' para que funcione esta línea)
 source airflow_env/bin/activate
 
 # 4. Configurar variables de entorno e instalar Airflow con el driver de postgres

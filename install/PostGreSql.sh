@@ -1,42 +1,35 @@
 #!/bin/bash
 
 # ==============================================================================
-# SCRIPT DE INSTALACIÓN AUTOMÁTICA DE POSTGRESQL (CORREGIDO PARA UBUNTU RECIENTE)
+# SCRIPT DE INSTALACIÓN AUTOMÁTICA DE POSTGRESQL (CON AUTOLIMPIEZA PREVIA)
+# ==============================================================================
+# Ejecutar como root o con sudo.
 # ==============================================================================
 
-# --- CONFIGURACIÓN ---
-# Define la versión de PostgreSQL que deseas instalar (ej. 14, 15, 16 o 17)
-PG_VERSION="16"
-
-# Salir inmediatamente si un comando falla
+# Salir inmediatamente si un comando falla de manera inesperada
 set -e
 
-echo "=== [1/5] Actualizando el sistema operativo ==="
-sudo apt-get update && sudo apt-get upgrade -y
+echo "=== [0/4] Fase de Limpieza Previa ==="
+echo "Eliminando repositorios externos antiguos si existen..."
+sudo rm -f /etc/apt/sources.list.d/pgdg.list
 
-echo "=== [2/5] Instalando dependencias necesarias ==="
-sudo apt-get install -y gnupg2 wget ca-certificates lsb-release curl
+echo "Limpiando la caché local de paquetes rotos..."
+sudo apt-get clean
+sudo apt-get autoremove -y
 
-echo "=== [3/5] Añadiendo el repositorio oficial de PostgreSQL ==="
-# Asegurar la existencia del directorio de llaveros
-sudo install -d /etc/apt/keyrings
-
-# Importar la llave GPG oficial de PostgreSQL
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor --yes -o /etc/apt/keyrings/postgresql.gpg
-
-# CORRECCIÓN: Forzamos la rama 'noble' para evitar el error 404 de compatibilidad en entornos de desarrollo avanzados
-echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-
-echo "=== [4/5] Instalando PostgreSQL ${PG_VERSION} y componentes esenciales ==="
+echo "=== [1/4] Actualizando las listas de paquetes nativos ==="
 sudo apt-get update
-sudo apt-get install -y postgresql-${PG_VERSION} postgresql-contrib-${PG_VERSION}
 
-echo "=== [5/5] Verificando y habilitando el servicio ==="
+echo "=== [2/4] Instalando PostgreSQL nativo y componentes esenciales ==="
+# Instalamos la versión nativa soportada por el sistema para evitar conflictos con libicu
+sudo apt-get install -y postgresql postgresql-contrib
+
+echo "=== [3/4] Verificando y habilitando el servicio ==="
 sudo systemctl daemon-reload
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
 
 echo "=============================================================================="
-echo " ¡PostgreSQL ${PG_VERSION} se ha instalado y está corriendo exitosamente! "
+echo "   ¡PostgreSQL se ha purgado, instalado y activado exitosamente!              "
 echo "=============================================================================="
 sudo systemctl status postgresql --no-pager

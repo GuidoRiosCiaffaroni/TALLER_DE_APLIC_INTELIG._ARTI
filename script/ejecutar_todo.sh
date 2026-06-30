@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# SCRIPT ORQUESTADOR: AUTOMATIZACIÓN DE PERMISOS Y EJECUCIÓN EN PIPELINE
+# SCRIPT ORQUESTADOR: AUTOMATIZACION DE PERMISOS Y EJECUCION EN PIPELINE
 # ==============================================================================
-# Este script otorga permisos de ejecución de manera masiva y corre
-# de forma secuencial los 3 pipelines de extracción de datos socioeconómicos.
+# Este script otorga permisos de ejecucion de manera masiva y corre
+# de forma secuencial los 3 pipelines de extraccion de datos socioeconomicos.
 # ==============================================================================
 
-# Otorgar permisos totales de lectura, escritura y ejecución
-chmod 777 reporte_banco_mundial.py
-chmod 777 reporte_cepal_linux.py
-chmod 777 reporte_chile_abierto.py
+# Otorgar permisos de ejecucion de forma segura
+chmod +x reporte_banco_mundial.py
+chmod +x reporte_cepal_linux.py
+chmod +x reporte_chile_abierto.py
 
 # Lanzar ejecuciones secuenciales
 ./reporte_banco_mundial.py

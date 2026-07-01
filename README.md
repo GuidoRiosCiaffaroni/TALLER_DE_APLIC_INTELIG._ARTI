@@ -89,28 +89,28 @@ El ecosistema de consumo del dashboard identifica tres perfiles clave con necesi
 
 # 2) KPIs y Métricas
 
-[cite_start]Para evaluar con rigurosidad el escenario macroeconómico y responder a las preguntas estratégicas del negocio [cite: 11][cite_start], se han definido 3 Indicadores Clave de Rendimiento (KPIs) de alta densidad analítica[cite: 17]. [cite_start]Estos indicadores evitan métricas de conteo simples, enfocándose en ratios y tasas indexadas[cite: 16].
+Para evaluar con rigurosidad el escenario macroeconómico y responder a las preguntas estratégicas del negocio, se han definido 3 Indicadores Clave de Rendimiento (KPIs) de alta densidad analítica. Estos indicadores evitan métricas de conteo simples, enfocándose en ratios y tasas indexadas.
 
 ---
 
 ### 📈 KPI 1: Tasa de Crecimiento Económico Real Interanual
-* [cite_start]**b) Nombre del KPI:** Tasa de Crecimiento Real del PIB (${\Delta}\text{PIB}_{\text{Real}}$)[cite: 18].
-* [cite_start]**c) Fuente de Datos:** Extraído de manera directa a través del módulo `reporte_cepal_linux.py`, consumiendo la variable armonizada de la CEPAL/Banco Mundial `NY.GDP.MKTP.KD.ZG` (PIB a precios constantes de mercado)[cite: 19].
-* [cite_start]**d) Frecuencia de Actualización:** Anual (ajustada según la ventana de publicación oficial de las cuentas nacionales)[cite: 20].
-* [cite_start]**e) Valor Objetivo o Benchmark:** $\ge 3.0\%$ anual (definido históricamente como el umbral de crecimiento saludable para economías en vías de desarrollo en la región de Latinoamérica)[cite: 21].
+* **b) Nombre del KPI:** Tasa de Crecimiento Real del PIB (Delta PIB Real).
+* **c) Fuente de Datos:** Extraído de manera directa a través del módulo `reporte_cepal_linux.py`, consumiendo la variable armonizada de la CEPAL/Banco Mundial `NY.GDP.MKTP.KD.ZG` (PIB a precios constantes de mercado).
+* **d) Frecuencia de Actualización:** Anual (ajustada según la ventana de publicación oficial de las cuentas nacionales).
+* **e) Valor Objetivo o Benchmark:** Mayor o igual a 3.0% anual (definido históricamente como el umbral de crecimiento saludable para economías en vías de desarrollo en la región de Latinoamérica).
 
 ---
 
 ### 👥 KPI 2: Índice de Eficiencia Productiva Per Cápita (Ingreso Armonizado)
-* [cite_start]**b) Nombre del KPI:** PIB Per Cápita Armonizado en USD Corrientes[cite: 18].
-* [cite_start]**c) Fuente de Datos:** Consolidado mediante un *outer join* cronológico entre las variables `NY.GDP.PCAP.CD` (Ingreso Per Cápita) y `SP.POP.TOTL` (Población Total) orquestado por el módulo maestro `reporte_banco_mundial.py`[cite: 19].
-* [cite_start]**d) Frecuencia de Actualización:** Anual[cite: 20].
-* [cite_start]**e) Valor Objetivo o Benchmark:** $\ge \$16,000 \text{ USD}$ por habitante (Meta basada en el ingreso promedio para mantener la competitividad del país dentro de las economías de la OCDE)[cite: 21].
+* **b) Nombre del KPI:** PIB Per Cápita Armonizado en USD Corrientes.
+* **c) Fuente de Datos:** Consolidado mediante un *outer join* cronológico entre las variables `NY.GDP.PCAP.CD` (Ingreso Per Cápita) y `SP.POP.TOTL` (Población Total) orquestado por el módulo maestro `reporte_banco_mundial.py`.
+* **d) Frecuencia de Actualización:** Anual.
+* **e) Valor Objetivo o Benchmark:** Mayor o igual a 16,000 USD por habitante (Meta basada en el ingreso promedio para mantener la competitividad del país dentro de las economías de la OCDE).
 
 ---
 
 ### ⚙️ KPI 3: Índice de Resiliencia y Disponibilidad del Pipeline (DataOps)
-* [cite_start]**b) Nombre del KPI:** Tasa de Continuidad Operativa de Ingesta (Failsafe Uptime)[cite: 18].
-* [cite_start]**c) Fuente de Datos:** Calculado internamente por la lógica de control de excepciones del módulo `reporte_chile_abierto.py`[cite: 19]. Registra la proporción de ejecuciones exitosas que requirieron la inyección del *dataset* de contingencia local frente a consultas HTTP exitosas a la API activa.
-* [cite_start]**d) Frecuencia de Actualización:** Por cada ejecución del pipeline (configurable de forma interactiva o diaria mediante tareas programadas Cron)[cite: 20].
-* [cite_start]**e) Valor Objetivo o Benchmark:** $100\%$ de disponibilidad de datos analíticos en la capa de consumo (asegurando que el dashboard mantenga visualizaciones funcionales e interactivas para la alta dirección incluso ante caídas del servidor remoto)[cite: 21].
+* **b) Nombre del KPI:** Tasa de Continuidad Operativa de Ingesta (Failsafe Uptime).
+* **c) Fuente de Datos:** Calculado internamente por la lógica de control de excepciones del módulo `reporte_chile_abierto.py`. Registra la proporción de ejecuciones exitosas que requirieron la inyección del *dataset* de contingencia local frente a consultas HTTP exitosas a la API activa.
+* **d) Frecuencia de Actualización:** Por cada ejecución del pipeline (configurable de forma interactiva o diaria mediante tareas programadas Cron).
+* **e) Valor Objetivo o Benchmark:** 100% de disponibilidad de datos analíticos en la capa de consumo (asegurando que el dashboard mantenga visualizaciones funcionales e interactivas para la alta dirección incluso ante caídas del servidor remoto).

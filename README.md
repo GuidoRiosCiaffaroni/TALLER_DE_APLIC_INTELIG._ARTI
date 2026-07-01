@@ -114,3 +114,91 @@ Para evaluar con rigurosidad el escenario macroeconómico y responder a las preg
 * **c) Fuente de Datos:** Calculado internamente por la lógica de control de excepciones del módulo `reporte_chile_abierto.py`. Registra la proporción de ejecuciones exitosas que requirieron la inyección del *dataset* de contingencia local frente a consultas HTTP exitosas a la API activa.
 * **d) Frecuencia de Actualización:** Por cada ejecución del pipeline (configurable de forma interactiva o diaria mediante tareas programadas Cron).
 * **e) Valor Objetivo o Benchmark:** 100% de disponibilidad de datos analíticos en la capa de consumo (asegurando que el dashboard mantenga visualizaciones funcionales e interactivas para la alta dirección incluso ante caídas del servidor remoto).
+
+#######################################################################################################################
+
+# 3) Pipeline de Datos
+
+El flujo de ingeniería de datos (*Data Pipeline*) de la solución está diseñado bajo un enfoque modular y desacoplado, lo que permite procesar y unificar la información socioeconómica de manera eficiente y sin dependencias críticas de infraestructura compleja.
+
+---
+
+### 📥 a) Ingesta (Data Ingestion)
+La etapa de ingesta se encarga de la extracción de datos desde las fuentes de origen hacia el entorno local de trabajo. Está gobernada por tres componentes independientes en Python:
+
+1. **Extracción Externa Directa:** Los módulos `reporte_banco_mundial.py` y `reporte_cepal_linux.py` ejecutan peticiones HTTP sincrónicas (utilizando la librería `requests`) a los endpoints oficiales de la API REST (v2) del Banco Mundial. Se configuran parámetros clave en la URL como el código de país (`CHL`), formato JSON, rango temporal (`1960:2026`) y paginación (`per_page=1000`) para traer las series completas en un solo bloque de red.
+2. **Mecanismo de Contingencia Activa (Failsafe):** El módulo `reporte_chile_abierto.py` intercepta el endpoint de la API local. En caso de detectar fallas de conexión, problemas de resolución DNS o latencias elevadas, el script activa un bloque `try-except` que inyecta de forma automática un conjunto de datos duros pre-almacenados (provenientes de fuentes oficiales como el INE y el CPLT), evitando que el flujo se interrumpa.
+
+---
+
+### 🗄️ b) Almacenamiento (Data Storage)
+Una vez que las respuestas JSON son recibidas y validadas por los scripts, los datos se escriben en disco de manera persistente, estructurando el almacenamiento en dos niveles locales:
+
+* **Capa Cruda (Raw Data Layer):** Cada script de ingesta procesa el payload JSON y lo convierte en un DataFrame inicial. Este se guarda inmediatamente en la carpeta raíz `../Data/` en formato **CSV** con codificación estándar **UTF-8**. De manera opcional, los datos de alta densidad analítica se guardan en formato **Parquet**, aprovechando su compresión nativa para acelerar lecturas posteriores.
+* **Capa Integrada (Trusted Data Layer):** Los datos limpios se cargan en una base de datos relacional **SQLite** a través de un único archivo de base de datos (`.db`). Esto proporciona un almacenamiento indexado y estructurado sin la necesidad de levantar un servidor de base de datos tradicional, ideal para la portabilidad del proyecto.
+
+---
+
+### ⚙️ c) Transformación (Data Transformation / ETL)
+El procesamiento y preparación de los datos se realiza completamente en memoria utilizando la librería **Pandas**, asegurando tiempos de ejecución de nivel sub-segundo:
+
+1. **Normalización y Tipado:** Se realiza un *parsing* forzoso de tipos de datos. La columna temporal se transforma a tipo entero (`int`) para actuar como llave de cruce, y los indicadores numéricos se convierten a punto flotante (`float`), removiendo caracteres especiales o strings erróneos.
+2. **Manejo de Nulos y Duplicados:** Se descartan registros donde el año es nulo mediante `dropna(subset=['anio'])`. Se aplica una limpieza de redundancias asegurando que exista un único registro por año para cada indicador.
+3. **Filtro Temporal Crítico:** Se aplica un filtro lógico en caliente para garantizar que los registros se mantengan estrictamente dentro del marco temporal del curso (`Anio >= 1960` y `Anio <= 2026`).
+4. **Consolidación (Merge):** Los dataframes individuales se unifican cronológicamente mediante combinaciones externas integrales (`pd.merge(..., how='outer', on='Anio')`), alineando todas las variables macroeconómicas bajo la misma estructura temporal.
+
+---
+
+### 📊 d) Consumo por parte del Dashboard (Data Consumption)
+La última etapa del pipeline expone los datos unificados y listos para la capa de presentación mediante dos alternativas de consumo directo:
+
+* **Consumo vía Power BI Desktop:** Power BI se conecta localmente al archivo de base de datos SQLite o a los archivos Parquet procesados. Al delegar la limpieza pesada a los scripts de Python, Power BI solo se encarga de leer la tabla final optimizada, lo que agiliza la creación de los gráficos y filtros interactivos sin ralentizar la interfaz del usuario.
+* **Consumo vía Streamlit (Full-Code Python):** La aplicación web de Streamlit importa Pandas y lee directamente el archivo CSV o Parquet unificado desde `../Data/`. Utilizando librerías visuales como Plotly, Streamlit renderiza el cuadro de mando dinámico y despliega la aplicación de forma pública y gratuita en *Streamlit Community Cloud*, dejando el dashboard completamente funcional en la web para los stakeholders.
+
+
+### 📊 Representación Gráfica del Pipeline de Datos (Data Flow)
+
+A continuación se presenta el flujo detallado de los datos, desde la extracción física en los endpoints de las APIs de origen hasta su consumo final en las plataformas de visualización:
+
+```mermaid
+graph TD
+    %% Fuentes de Origen (Ingesta)
+    subgraph Ingesta [1. Capa de Ingesta]
+        A1[API REST v2 <br> Banco Mundial] -->|Petición HTTP / Requests| B1(reporte_banco_mundial.py)
+        A2[API REST <br> Series CEPAL] -->|Petición HTTP / Requests| B2(reporte_cepal_linux.py)
+        A3[API v1 <br> Chile Abierto] -->|Intento Conexión HTTP| B3(reporte_chile_abierto.py)
+        A4[(Dataset Local <br> Contingencia INE/CPLT)] -->|Failsafe Injection| B3
+    end
+
+    %% Capa de Almacenamiento Raw
+    subgraph Almacenamiento_Raw [2. Capa Cruda / Storage Raw]
+        B1 -->|Escritura UTF-8| C1[datos_bancomundial_chl.csv]
+        B2 -->|Escritura UTF-8| C2[datos_cepal_chl_1960_2026.csv]
+        B3 -->|Escritura UTF-8| C3[datos_chileabierto_chl.csv]
+    end
+
+    %% Capa de Transformación
+    subgraph Transformacion [3. Procesamiento y ETL / Pandas]
+        C1 & C2 & C3 -->|Carga de DataFrames| D1{Limpieza y Tipado}
+        D1 -->|Filtro Temporal <br> 1960-2026| D2[Manejo de Nulos y Duplicados]
+        D2 -->|Outer Join Consolidado| D3[Cálculo de KPIs y Métricas Derivadas]
+    end
+
+    %% Capa de Destino / Trusted
+    subgraph Almacenamiento_Trusted [4. Capa Integrada / Trusted]
+        D3 -->|Persistencia Estructurada| E1[(Base de Datos <br> SQLite .db)]
+        D3 -->|Archivos Optimizados| E2[Dataset Unificado .parquet / .csv]
+    end
+
+    %% Capa de Consumo
+    subgraph Consumo [5. Capa de Visualización]
+        E1 -->|Conexión Local Nativa| F1[Dashboard Power BI Desktop]
+        E2 -->|Lectura de DataFrames Python| F2[App Web Streamlit <br> deployed on Community Cloud]
+    end
+
+    %% Estilos de la gráfica
+    style Ingesta fill:#f5f5f5,stroke:#333,stroke-width:1px
+    style Almacenamiento_Raw fill:#fff5f5,stroke:#e53e3e,stroke-width:1px
+    style Transformacion fill:#f0fff4,stroke:#38a169,stroke-width:1px
+    style Almacenamiento_Trusted fill:#feebc8,stroke:#dd6b20,stroke-width:1px
+    style Consumo fill:#ebf8ff,stroke:#3182ce,stroke-width:2px

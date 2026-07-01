@@ -55,8 +55,8 @@ def generar_reporte_banco_mundial_chile(rango_anios="1960:2026", pais="CHL"):
     # Diccionario de mapeo de indicadores
     indicadores = {
         'NY.GDP.MKTP.CD': 'PIB_USD',
-        'SP.POP.TOTL': 'Poblacion_Total',
         'NY.GDP.PCAP.CD': 'Ingreso_Per_Capita_USD',
+        'SP.POP.TOTL': 'Poblacion_Total',
         'SM.POP.NETM': 'Migracion_Neta',
         'SI.POV.NAHC': 'Pobreza_Tasa_Nacional_Porcentaje',
         'SL.UEM.TOTL.ZS': 'Desempleo_Porcentaje',

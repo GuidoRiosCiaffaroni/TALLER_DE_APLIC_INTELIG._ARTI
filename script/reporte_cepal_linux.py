@@ -48,8 +48,8 @@ def generar_reporte_cepal_chile(pais="CHL", rango_anios="1960:2026"):
         'NY.GDP.MKTP.KD': 'PIB_Precios_Constantes',          # PIB Real (Volumen)
         'NY.GDP.MKTP.CD': 'PIB_Corriente_USD',               # PIB Nominal (Valor absoluto)
         'NY.GDP.MKTP.KD.ZG': 'PIB_Crecimiento_Anual_Porcentaje', # Tasa de crecimiento económico
-        'SP.POP.TOTL': 'Poblacion_Total',
         'NY.GDP.PCAP.KD': 'Ingreso_Per_Capita_USD',
+        'SP.POP.TOTL': 'Poblacion_Total',
         'SM.POP.NETM': 'Migracion_Neta',
         'SI.POV.DDAY': 'Pobreza_Tasa_Armonizada_CEPAL',
         'SL.UEM.TOTL.ZS': 'Desempleo_Porcentaje',

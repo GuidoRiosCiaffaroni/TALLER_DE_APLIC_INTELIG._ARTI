@@ -7,7 +7,7 @@ from airflow.operators.bash import BashOperator
 RUTA_BASE = "/root/airflow_project"
 
 default_args = {
-    'owner': 'Profesor_Airflow',
+    'owner': 'Guido_Airflow',
     'depends_on_past': False,
     'start_date': datetime(2026, 1, 1),
     'retries': 1,
@@ -24,8 +24,8 @@ with DAG(
 ) as dag:
 
     upload_sh = BashOperator(
-        task_id='1_ejecutar_upload_sh',
-        bash_command=f'cd {RUTA_BASE} && ./upload.sh',
+        task_id='1_ejecutar_todo_sh',
+        bash_command=f'cd {RUTA_BASE} && ./script/ejecutar_todo.sh',
     )
 
     banco_mundial = BashOperator(
@@ -34,7 +34,7 @@ with DAG(
     )
 
     cepal = BashOperator(
-        task_id='3_reporte_cepal_linux',
+        task_id='3_reporte_cepal',
         bash_command=f'python3 {RUTA_BASE}/script/reporte_cepal_linux.py',
     )
 

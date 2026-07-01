@@ -12,9 +12,8 @@ AIRFLOW_DB_USER="airflow_user"
 AIRFLOW_DB_PASS="airflow_pass" 
 AIRFLOW_DB_NAME="airflow_db"
 
-# 1. Instalar dependencias esenciales del sistema (Sin repositorios externos)
+# 1. Instalar dependencias esenciales del sistema nativo (Sin PPAs externos)
 echo "--> Installing system and postgres development dependencies..."
-sudo apt update
 sudo apt install python3 python3-pip python3-venv build-essential libssl-dev libffi-dev python3-dev libpq-dev -y
 
 # 2. Crear la Base de Datos y el Usuario dedicado en tu Postgres de forma local
@@ -41,7 +40,7 @@ export AIRFLOW_HOME="$PROJECT_DIR/airflow"
 
 pip install --upgrade pip
 
-# CRÍTICO: Usamos --ignore-requires-python para obligar a pip a instalar Airflow 2.10.2 en Python 3.13
+# Forzamos a pip a instalar Airflow en tu Python actual ignorando las restricciones estrictas de versión
 pip install "apache-airflow[postgres]==2.10.2" --ignore-requires-python
 
 # 5. Generar la configuración e inyectar la cadena de conexión de Postgres

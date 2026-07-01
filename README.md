@@ -205,5 +205,7 @@ graph TD
 
 
 
-
+<video src="https://raw.githubusercontent.com/GuidoRiosCiaffaroni/TALLER_DE_APLIC_INTELIG._ARTI/main/Videos/V_01.mp4" controls width="100%">
+  Tu navegador no soporta el formato de video.
+</video>
     

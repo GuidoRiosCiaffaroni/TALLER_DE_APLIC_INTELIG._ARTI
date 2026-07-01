@@ -7,7 +7,7 @@ Módulo de Extracción de Datos Socioeconómicos del Banco Mundial.
 Este script automatiza la descarga, consolidación y exportación de indicadores
 clave de desarrollo para un país y rango de años específicos, utilizando la API
 pública REST (v2) del Banco Mundial. El resultado se estructura en un DataFrame
-de Pandas y se persiste localmente en formato CSV dentro del directorio 'data/'.
+de Pandas y se persiste localmente en formato CSV dentro del directorio 'Data/'.
 
 Diseñado para ejecuciones tanto programadas (ETL/Cron) como interactivas en entornos Linux.
 
@@ -30,7 +30,7 @@ def generar_reporte_banco_mundial_chile(rango_anios="1960:2026", pais="CHL"):
     Itera sobre un diccionario de indicadores predefinidos, realiza peticiones 
     a la API, limpia las respuestas JSON individuales, alinea los datos 
     cronológicamente mediante un 'outer join' por año y exporta un reporte 
-    consolidado en CSV dentro de la carpeta 'data/'.
+    consolidado en CSV dentro de la carpeta 'Data/'.
 
     Parámetros:
         rango_anios (str): Período de tiempo consultado en formato 'AAAA:AAAA'. 
@@ -40,9 +40,11 @@ def generar_reporte_banco_mundial_chile(rango_anios="1960:2026", pais="CHL"):
     """
     # 1. Resolución robusta de la ruta raíz (compatible con carpetas compartidas vboxsf)
     ruta_script = os.path.dirname(os.path.abspath(__file__))
-    directorio_data = Path(ruta_script) / "data"
     
-    # Crear el directorio 'data' si no existe en la raíz del script
+    # Forzamos el uso de 'Data' con D mayúscula para coincidir exactamente con tu directorio
+    directorio_data = Path(ruta_script) / "Data"
+    
+    # Crear el directorio 'Data' si no existe en la raíz del script
     directorio_data.mkdir(parents=True, exist_ok=True)
 
     # Definición del nombre y ruta absoluta del archivo de salida
@@ -66,7 +68,7 @@ def generar_reporte_banco_mundial_chile(rango_anios="1960:2026", pais="CHL"):
     print("🌐 Conectando con los servidores de api.worldbank.org...")
     print(f"📥 Procesando serie histórica ({rango_anios}) para {pais}...")
 
-    # Bucle iterativo para consultar cada indicador
+    # Bucle interactivo para consultar cada indicador
     for cod_api, nombre_col in indicadores.items():
         url = f"https://api.worldbank.org/v2/country/{pais}/indicator/{cod_api}?format=json&per_page=1000&date={rango_anios}"
 
@@ -97,7 +99,7 @@ def generar_reporte_banco_mundial_chile(rango_anios="1960:2026", pais="CHL"):
         # Ordenamiento cronológico ascendente
         df_final = df_final.sort_values('Anio').reset_index(drop=True)
 
-        # Volcado de datos directamente a la ruta destino (dentro de data/)
+        # Volcado de datos directamente a la ruta destino (dentro de Data/)
         df_final.to_csv(ruta_salida_csv, index=False, encoding='utf-8')
 
         print("\n" + "="*60)

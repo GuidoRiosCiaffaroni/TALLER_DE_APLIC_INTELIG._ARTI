@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.standard.operators.bash import BashOperator
+# Importación clásica y compatible con todas las versiones de Airflow 2.x
+from airflow.operators.bash import BashOperator
 
-# Ruta base donde se encuentra su estructura en el servidor Linux
-# ¡Cambie esto por la ruta absoluta real de su servidor! (Ej: /home/usuario/proyecto)
-RUTA_BASE = "/ruta/absoluta/a/su/proyecto"
+# Definimos la ruta donde están guardados sus scripts en el servidor
+RUTA_BASE = "/root/airflow_project"
 
 default_args = {
     'owner': 'Profesor_Airflow',
@@ -15,37 +15,33 @@ default_args = {
 }
 
 with DAG(
-    dag_id='ejecucion_individual_scripts',
+    dag_id='orquestador_scripts_individuales',
     default_args=default_args,
-    description='Orquestando la estructura de archivos local de forma individual',
-    schedule_interval=None, # Lo dejamos manual para que pruebe uno a uno
+    description='Mapeo de archivos de reportes en Linux',
+    schedule_interval=None,  # Manual para ejecución individual
     catchup=False,
-    tags=['linux', 'produccion'],
+    tags=['reportes', 'linux'],
 ) as dag:
 
-    # 1. Tarea para ejecutar el script de subida/carga en la raíz
-    tarea_upload = BashOperator(
-        task_id='ejecutar_upload_sh',
+    upload_sh = BashOperator(
+        task_id='1_ejecutar_upload_sh',
         bash_command=f'cd {RUTA_BASE} && ./upload.sh',
     )
 
-    # 2. Tareas individuales para la carpeta 'script'
-    tarea_reporte_banco_mundial = BashOperator(
-        task_id='reporte_banco_mundial',
+    banco_mundial = BashOperator(
+        task_id='2_reporte_banco_mundial',
         bash_command=f'python3 {RUTA_BASE}/script/reporte_banco_mundial.py',
     )
 
-    tarea_reporte_cepal = BashOperator(
-        task_id='reporte_cepal_linux',
+    cepal = BashOperator(
+        task_id='3_reporte_cepal_linux',
         bash_command=f'python3 {RUTA_BASE}/script/reporte_cepal_linux.py',
     )
 
-    tarea_reporte_chile = BashOperator(
-        task_id='reporte_chile_abierto',
+    chile_abierto = BashOperator(
+        task_id='4_reporte_chile_abierto',
         bash_command=f'python3 {RUTA_BASE}/script/reporte_chile_abierto.py',
     )
 
-    # 3. Definición de dependencias
-    # Imaginemos que primero requerimos subir/preparar datos con upload.sh 
-    # y luego podemos correr los tres reportes en paralelo de forma independiente
-    tarea_upload >> [tarea_reporte_banco_mundial, tarea_reporte_cepal, tarea_reporte_chile]
+    # Flujo de tareas secuencial o en paralelo
+    upload_sh >> [banco_mundial, cepal, chile_abierto]

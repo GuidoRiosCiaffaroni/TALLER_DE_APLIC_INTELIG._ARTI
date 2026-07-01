@@ -21,22 +21,17 @@ def generar_reporte_chile_abierto(anio_defecto=None):
     """
     Conecta con la API de Chile Abierto, procesa la respuesta JSON,
     valida que los datos estén estrictamente en el rango 1960-2026
-    y exporta un informe tabular en el archivo personalizado CSV dentro de la carpeta 'Data'.
+    y exporta el archivo CSV directamente en el directorio 'Data' ya existente.
     """
     
     # ----------------------------------------------------------------------------
-    # CONFIGURACIÓN DE RUTAS Y ALMACENAMIENTO DE SALIDA
+    # CONFIGURACIÓN DE RUTAS DE SALIDA (ESTRUCTURA DE TU PROYECTO)
     # ----------------------------------------------------------------------------
-    # Definición del directorio de destino y nombre del archivo
-    directorio_salida = "Data"
+    # Al estar ejecutándose dentro de 'script/', subimos un nivel para ir a 'Data/'
+    directorio_salida = os.path.join("..", "Data")
     nombre_archivo = "datos_chileabierto_chl_1960_2027.csv"
     
-    # Creación del directorio 'Data' de forma segura si no existe previamente
-    if not os.path.exists(directorio_salida):
-        os.makedirs(directorio_salida)
-        print(f"📁 Directorio creado con éxito: '{directorio_salida}/'")
-
-    # Combinación de la ruta completa (ej. Data/datos_chileabierto_chl_1960_2027.csv)
+    # Construcción de la ruta relativa final
     nombre_csv = os.path.join(directorio_salida, nombre_archivo)
 
     # Endpoint base de la API para la extracción de indicadores socioeconómicos
@@ -106,9 +101,13 @@ def generar_reporte_chile_abierto(anio_defecto=None):
     if df.empty:
         print("⚠️ Advertencia: No se encontraron registros que cumplan con las restricciones de año (1960-2026).", file=sys.stderr)
 
-    # Exportación del dataset verificado al almacenamiento local en el directorio 'Data'
-    df.to_csv(nombre_csv, index=False, encoding='utf-8')
-    print(f"✅ Estructura ['data'] verificada y exportada a CSV de forma exitosa en: {nombre_csv}")
+    # Exportación del dataset verificado directamente a la ruta asignada en 'Data/'
+    try:
+        df.to_csv(nombre_csv, index=False, encoding='utf-8')
+        print(f"✅ Estructura ['data'] verificada y exportada a CSV con éxito en: {nombre_csv}")
+    except FileNotFoundError:
+        print(f"❌ Error: No se pudo encontrar el directorio '{directorio_salida}'. Asegúrate de ejecutar el script desde la carpeta 'script/'.", file=sys.stderr)
+        return
 
     # ----------------------------------------------------------------------------
     # [BLOQUE 3]: SALIDA ESTÁNDAR POR TERMINAL (MONITORIZACIÓN)
@@ -127,7 +126,7 @@ def generar_reporte_chile_abierto(anio_defecto=None):
 # PUNTO DE ENTRADA DE LA APLICACIÓN (CLI)
 # ----------------------------------------------------------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Procesador del pipeline tabular Chile Abierto con validación temporal (1960-2026).")
+    parser = argparse.ArgumentParser(description="Procesador del pipeline tabular Chile Abierto con salida directa a la carpeta Data del entorno.")
     
     # Definición de flag configurable para el filtro de año
     parser.add_argument("--year", type=str, default=None, help="Filtrar por un año específico (Opcional)")

@@ -115,7 +115,7 @@ Para evaluar con rigurosidad el escenario macroeconómico y responder a las preg
 * **d) Frecuencia de Actualización:** Por cada ejecución del pipeline (configurable de forma interactiva o diaria mediante tareas programadas Cron).
 * **e) Valor Objetivo o Benchmark:** 100% de disponibilidad de datos analíticos en la capa de consumo (asegurando que el dashboard mantenga visualizaciones funcionales e interactivas para la alta dirección incluso ante caídas del servidor remoto).
 
-#######################################################################################################################
+
 
 # 3) Pipeline de Datos
 
@@ -204,6 +204,6 @@ graph TD
     style Consumo fill:#ebf8ff,stroke:#3182ce,stroke-width:2px
 
 
-    ##########################################################################################################
+
 
     

@@ -206,4 +206,91 @@ graph TD
 
     ##########################################################################################################
 
-    
+    # 4) Arquitectura de la Plataforma Propuesta y Justificación
+
+Al eliminarse la obligatoriedad de la infraestructura en la nube de AWS, el equipo ha diseñado una arquitectura local e híbrida de alta velocidad ("plataforma de su comodidad") orientada a maximizar la portabilidad del proyecto, eliminar los costos operativos y garantizar la agilidad en el desarrollo del pipeline. 
+
+A continuación, se detalla la justificación técnica de cada componente seleccionado para las capas del flujo:
+
+---
+
+### 📥 b) Ingesta de Datos (Data Ingestion)
+* **Herramienta Seleccionada:** Python 3 (Librería nativa `requests` + `argparse`).
+* **Justificación Breve:** La librería `requests` permite gestionar de manera ligera y síncrona las peticiones HTTP/REST hacia las APIs del Banco Mundial, CEPAL y Chile Abierto. La incorporación de `argparse` dota a los scripts de una interfaz de línea de comandos (CLI) que permite parametrizar las consultas por país o rango de años dinámicamente desde la terminal, facilitando ejecuciones tanto interactivas como automatizadas (vía scripts de Bash o tareas programadas Cron).
+
+---
+
+### 🗄️ c) Almacenamiento (Data Storage)
+* **Herramienta Seleccionada:** Archivos Planos CSV/Parquet (Capa Raw) y Base de Datos Relacional **SQLite** (Capa Trusted).
+* **Justificación Breve:** El formato columnar **Parquet** optimiza el espacio en disco y acelera las consultas para indicadores analíticos densos. Por su parte, **SQLite** se justifica para el modelo unificado debido a que almacena toda la base de datos relacional en un único archivo portable (.db). Esto elimina por completo los costos de administración, configuraciones de red y aprovisionamiento de servidores tradicionales (como PostgreSQL o MySQL), garantizando que cualquier evaluador pueda clonar el repositorio y contar con el motor de datos operacional de inmediato.
+
+---
+
+### ⚙️ d) Procesamiento (Data Processing)
+* **Herramienta Seleccionada:** Ecosistema Python (**Pandas / Polars**).
+* **Justificación Breve:** Pandas es el estándar de la industria para la manipulación tabular de datos de mediana escala en memoria RAM. Permite ejecutar en microsegundos las uniones externas combinadas (*Outer Merges*) para alinear las series cronológicas históricas compartiendo la llave temporal "Anio". Su uso centraliza las reglas de negocio (limpieza de nulos, tipado forzoso y filtrado estricto al rango 1960-2026), evitando sobrecargar la capa de visualización con transformaciones pesadas.
+
+---
+
+### 📊 e) Visualización (Data Visualization)
+* **Herramienta Seleccionada:** **Power BI Desktop** o **Streamlit** (App Python).
+* **Justificación Breve:** Si se opta por una ruta ágil, **Power BI Desktop** ofrece controladores nativos para archivos SQLite, permitiendo prototipar gráficos dinámicos en pocas horas a costo cero. Si se prefiere una solución puramente en código, **Streamlit** permite construir interfaces web dinámicas directamente en Python y se conecta de forma nativa a *Streamlit Community Cloud*, plataforma que facilita desplegar el dashboard de manera pública, interactiva y gratuita con un par de clics, cumpliendo estrictamente con el requerimiento de despliegue funcional.
+
+---
+
+## 🗺️ a) Diagrama de Arquitectura de Alto Nivel
+
+El siguiente diagrama representa la integración técnica de los componentes elegidos, mostrando el flujo secuencial del dato a través de las cuatro fases obligatorias del pipeline:
+
+```mermaid
+graph TD
+    %% Fuentes Externas
+    subgraph Fuentes [Fuentes de Datos Externas]
+        BM[API v2 Banco Mundial]
+        CP[API Series CEPAL]
+        CA[API Chile Abierto]
+    end
+
+    %% Capa b) Ingesta
+    subgraph Ingesta [b. Capa de Ingesta]
+        PY_ING[Scripts Python 3 <br> requests / CLI]
+        FAIL[(Dataset local <br> Contingencia Failsafe)] -->|Inyección en Fallo| PY_ING
+    end
+
+    %% Capa c) Almacenamiento Raw
+    subgraph Almacenamiento_Raw [c. Almacenamiento - Capa Raw]
+        CSV_RAW[Archivos CSV <br> UTF-8]
+        PQT_RAW[Archivos Parquet <br> Columnar]
+    end
+
+    %% Capa d) Procesamiento
+    subgraph Procesamiento [d. Capa de Procesamiento / ETL]
+        PD_ETL[Motor Pandas <br> Limpieza, Outer Merge y KPIs]
+    end
+
+    %% Capa c) Almacenamiento Trusted
+    subgraph Almacenamiento_Trusted [c. Almacenamiento - Capa Trusted]
+        SQLITE[(Base de Datos <br> SQLite .db)]
+    end
+
+    %% Capa e) Visualización
+    subgraph Visualizacion [e. Capa de Visualización]
+        PBI[Dashboard Interactivo <br> Power BI Desktop]
+        ST[App Analítica <br> Streamlit Cloud]
+    end
+
+    %% Relaciones / Flujo
+    Fuentes -->|Peticiones HTTP REST| PY_ING
+    PY_ING -->|Persistencia Cruda| Almacenamiento_Raw
+    Almacenamiento_Raw -->|Lectura en Memoria| PD_ETL
+    PD_ETL -->|Carga de Modelo Relacional| Almacenamiento_Trusted
+    Almacenamiento_Trusted -->|Query SQL / Conexión Nativa| PBI
+    Almacenamiento_Trusted -->|Dataframe Consumo| ST
+
+    %% Estilos Visuales
+    style Fuentes fill:#f9f,stroke:#333,stroke-width:1px
+    style Ingesta fill:#ebf8ff,stroke:#3182ce,stroke-width:1px
+    style Almacenamiento_Raw fill:#fff5f5,stroke:#e53e3e,stroke-width:1px
+    style Procesamiento fill:#f0fff4,stroke:#38a169,stroke-width:1px
+    style Almacenamiento_Trusted fill:#feebc8,stroke:#dd6b20,stroke-width:1px
+    style Visualizacion fill:#faf5ff,stroke:#805ad5,stroke-width:2px

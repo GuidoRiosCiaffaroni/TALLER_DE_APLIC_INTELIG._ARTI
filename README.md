@@ -48,3 +48,69 @@ Para mitigar la dependencia de proveedores tecnológicos y asegurar una cobertur
 | `reporte_chile_abierto.py` | **API Chile Abierto v1** | Consolidación y validación con estadísticas locales e institucionales (INE, CPLT, CEAD), aislando el marco temporal al rango del curso (1960-2026). | **Inyección Activa de Contingencia:** Carga automática de un dataset local equivalente estructurado ante fallas totales del servidor central. |
 
 Todos los módulos de ingesta convergen de manera coordinada persistiendo los datos crudos resultantes directamente en archivos estructurados con codificación estándar `UTF-8` dentro del directorio del entorno local `../Data/`. Esto asegura el desacoplamiento total entre la extracción física de las fuentes y el posterior proceso de transformación, modelamiento relacional y carga en la plataforma de visualización funcional.
+
+#######################################################################################################################################
+
+# 1) Contexto y Problema de Negocio
+
+El diseño estratégico y la asignación de recursos en organizaciones expuestas a mercados globales exigen un monitoreo constante de las variables macroeconómicas fundamentales. Para responder a esta necesidad, este proyecto plantea el desarrollo de una solución analítica centralizada fundamentada en un pipeline de datos multi-fuente.
+
+### 🎯 a) Definición Clara del Escenario y Preguntas de Negocio
+El dashboard está diseñado para unificar series temporales históricas (1960–2026) extraídas de organismos internacionales (API del Banco Mundial y series armonizadas de la CEPAL) y validaciones locales (API de Chile Abierto). La integración de estas plataformas permitirá mitigar las inconsistencias de datos y responder de manera ágil a las siguientes preguntas críticas de negocio:
+
+* **¿Cuál ha sido la tendencia del crecimiento económico real** de la organización/región analizada al aislar el efecto distorsionador de la inflación sobre el PIB Nominal?
+* **¿Existe una correlación directa** entre la tasa de desempleo, el crecimiento demográfico y los niveles de estabilidad socioeconómica estructural a lo largo de las últimas décadas?
+* **¿Qué tan confiable es la ingesta y disponibilidad del pipeline analítico** frente a ventanas de inactividad o fallas críticas en los servidores externos institucionales?
+
+---
+
+### 🏢 b) Organización o Industria Analizada
+El proyecto se sitúa en el ámbito de la **Consultoría Estratégica de Inversión y Análisis de Riesgo Soberano (Industria Financiera y de Inteligencia de Negocios)**. El foco está puesto en proveer capacidades analíticas avanzadas a firmas que asesoran a grandes corporaciones, fondos de inversión o divisiones de planificación presupuestaria del sector público/privado que operan en o hacia el mercado de Chile.
+
+---
+
+### ⚠️ c) Problema o Necesidad de Negocio
+Las organizaciones actuales se enfrentan a tres deficiencias operativas y técnicas en sus arquitecturas tradicionales de datos:
+
+1. **La Ilusión Nominal:** La toma de decisiones financieras basadas en indicadores nominales (precios corrientes) introduce sesgos críticos en periodos de volatilidad inflacionaria, camuflando contracciones económicas reales detrás de incrementos artificiales en los flujos monetarios.
+2. **Altos Costos de Oportunidad por Procesamiento Manual:** Los equipos de análisis estratégico dedican hasta un 80% de su tiempo a la recolección, limpieza y formateo manual de tablas de datos dispersas en múltiples portales web, reduciendo drásticamente el tiempo disponible para la modelación predictiva y la generación de valor.
+3. **Fragilidad de la Ingesta de Datos:** Los pipelines monolíticos o manuales carecen de mecanismos automáticos de tolerancia a fallos (*failsafe*). Si una API pública experimenta latencia o caídas de servidor, la alta dirección se queda sin visibilidad de los KPIs. La necesidad del negocio radica en contar con un pipeline automatizado, resiliente y modular que garantice una "única fuente de la verdad" (*Single Source of Truth*).
+
+---
+
+### 👥 d) Usuarios o Stakeholders del Dashboard
+El ecosistema de consumo del dashboard identifica tres perfiles clave con necesidades diferenciadas:
+
+* **📈 Dirección Estratégica y Gerencia de Finanzas:** Usuarios de negocio que requieren un cuadro de mando ejecutivo de alto nivel, interactivo y visual, para evaluar tasas de crecimiento real indexadas, proyecciones de riesgo país y aprobar presupuestos de inversión plurianuales.
+* **🔬 Analistas de Datos y Consultores:** Usuarios avanzados que necesitan acceder de forma ágil y estructurada al repositorio limpio (Capa Trusted) para construir análisis ad-hoc y modelos econométricos sin invertir tiempo en fases previas de preparación de datos.
+* **⚙️ Ingenieros de Datos y Administradores de TI (DataOps):** Stakeholders técnicos responsables de monitorear la salud del pipeline, asegurar el cumplimiento de las ventanas de carga de datos, evaluar la efectividad de las contingencias locales (*try-except*) y garantizar la disponibilidad continua de la plataforma visual.
+
+#######################################################################################################################################
+
+# 2) KPIs y Métricas
+
+[cite_start]Para evaluar con rigurosidad el escenario macroeconómico y responder a las preguntas estratégicas del negocio [cite: 11][cite_start], se han definido 3 Indicadores Clave de Rendimiento (KPIs) de alta densidad analítica[cite: 17]. [cite_start]Estos indicadores evitan métricas de conteo simples, enfocándose en ratios y tasas indexadas[cite: 16].
+
+---
+
+### 📈 KPI 1: Tasa de Crecimiento Económico Real Interanual
+* [cite_start]**b) Nombre del KPI:** Tasa de Crecimiento Real del PIB (${\Delta}\text{PIB}_{\text{Real}}$)[cite: 18].
+* [cite_start]**c) Fuente de Datos:** Extraído de manera directa a través del módulo `reporte_cepal_linux.py`, consumiendo la variable armonizada de la CEPAL/Banco Mundial `NY.GDP.MKTP.KD.ZG` (PIB a precios constantes de mercado)[cite: 19].
+* [cite_start]**d) Frecuencia de Actualización:** Anual (ajustada según la ventana de publicación oficial de las cuentas nacionales)[cite: 20].
+* [cite_start]**e) Valor Objetivo o Benchmark:** $\ge 3.0\%$ anual (definido históricamente como el umbral de crecimiento saludable para economías en vías de desarrollo en la región de Latinoamérica)[cite: 21].
+
+---
+
+### 👥 KPI 2: Índice de Eficiencia Productiva Per Cápita (Ingreso Armonizado)
+* [cite_start]**b) Nombre del KPI:** PIB Per Cápita Armonizado en USD Corrientes[cite: 18].
+* [cite_start]**c) Fuente de Datos:** Consolidado mediante un *outer join* cronológico entre las variables `NY.GDP.PCAP.CD` (Ingreso Per Cápita) y `SP.POP.TOTL` (Población Total) orquestado por el módulo maestro `reporte_banco_mundial.py`[cite: 19].
+* [cite_start]**d) Frecuencia de Actualización:** Anual[cite: 20].
+* [cite_start]**e) Valor Objetivo o Benchmark:** $\ge \$16,000 \text{ USD}$ por habitante (Meta basada en el ingreso promedio para mantener la competitividad del país dentro de las economías de la OCDE)[cite: 21].
+
+---
+
+### ⚙️ KPI 3: Índice de Resiliencia y Disponibilidad del Pipeline (DataOps)
+* [cite_start]**b) Nombre del KPI:** Tasa de Continuidad Operativa de Ingesta (Failsafe Uptime)[cite: 18].
+* [cite_start]**c) Fuente de Datos:** Calculado internamente por la lógica de control de excepciones del módulo `reporte_chile_abierto.py`[cite: 19]. Registra la proporción de ejecuciones exitosas que requirieron la inyección del *dataset* de contingencia local frente a consultas HTTP exitosas a la API activa.
+* [cite_start]**d) Frecuencia de Actualización:** Por cada ejecución del pipeline (configurable de forma interactiva o diaria mediante tareas programadas Cron)[cite: 20].
+* [cite_start]**e) Valor Objetivo o Benchmark:** $100\%$ de disponibilidad de datos analíticos en la capa de consumo (asegurando que el dashboard mantenga visualizaciones funcionales e interactivas para la alta dirección incluso ante caídas del servidor remoto)[cite: 21].

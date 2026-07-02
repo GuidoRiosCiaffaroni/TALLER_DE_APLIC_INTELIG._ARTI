@@ -1,16 +1,15 @@
 from pathlib import Path
 import pandas as pd
 
-def pipeline_preprocesamiento_banco_mundial():
+def pipeline_preprocesamiento_cepal():
     # 1. Ubicación dinámica basada en el script (Tu_Proyecto/script)
-    # No importa si cambias el nombre del .py, __file__ siempre sabe dónde está.
     script_path = Path(__file__).resolve()
     script_dir = script_path.parent
     
     # 2. Apuntar a la carpeta hermana 'Data'
     data_dir = script_dir.parent / "Data"
     
-    # 3. Buscar el archivo CSV original en 'Data/' (omitiendo los ya preprocesados)
+    # 3. Buscar archivos CSV que falten por procesar (evitando los ya procesados)
     archivos_csv = list(data_dir.glob("*.csv"))
     archivos_entrada = [f for f in archivos_csv if "_preprocesados" not in f.name]
 
@@ -18,7 +17,7 @@ def pipeline_preprocesamiento_banco_mundial():
         print(f"[ERROR] No se encontró ningún archivo CSV base en: {data_dir}")
         return
 
-    # Tomar el archivo CSV disponible en la carpeta (ej. datos_banco_mundial.csv)
+    # Selecciona el archivo base disponible (ej. datos_cepal_chl_1960_2026.csv)
     ruta_entrada = archivos_entrada[0]
     
     # Definir el nombre de salida usando el sufijo '_preprocesados'
@@ -29,13 +28,13 @@ def pipeline_preprocesamiento_banco_mundial():
     
     # 4. Carga y transformación con Pandas
     df = pd.read_csv(ruta_entrada)
-    print(f"[PROCESO] Cantidad de registros: {len(df)}")
+    print(f"[PROCESO] Cantidad de registros encontrados: {len(df)}")
 
-    # TAREA 1: Agregar columna 'ID' correlativa (empezando en 1) al inicio
+    # TAREA 1: Agregar columna 'ID' correlativa (empezando en 1) al inicio de la tabla
     df.insert(0, 'ID', range(1, len(df) + 1))
     
-    # TAREA 2: Agregar columna 'origen' con el valor constante 'WB'
-    df['origen'] = 'WB'
+    # TAREA 2: Agregar columna 'origen' con la descripción "CP"
+    df['origen'] = 'CP'
 
     # 5. Guardar el resultado en la carpeta Data
     print(f"[PROCESO] Exportando resultado a: '{ruta_salida.name}'")
@@ -43,4 +42,4 @@ def pipeline_preprocesamiento_banco_mundial():
     print("[ÉXITO] El preprocesamiento de datos ha concluido correctamente.")
 
 if __name__ == "__main__":
-    pipeline_preprocesamiento_banco_mundial()
+    pipeline_preprocesamiento_cepal()

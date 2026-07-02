@@ -1,44 +1,40 @@
 from pathlib import Path
 import pandas as pd
 
-def ejecutar_pipeline_banco_mundial():
-    # 1. Mapeo dinámico de rutas basado en la ubicación del script
-    # __file__ obtiene la ruta de este archivo (ej. /tu_proyecto/script/procesar.py)
+def procesar_datos_banco_mundial():
+    # 1. Obtener la ruta del directorio donde está guardado este script (Tu_Proyecto/script)
     script_dir = Path(__file__).resolve().parent
     
-    # Navegamos un nivel arriba (raíz) y entramos a la carpeta hermana 'Data'
+    # 2. Moverse un nivel arriba (raíz) y acceder a la carpeta hermana 'Data'
     data_dir = script_dir.parent / "Data"
     
-    # Definición de rutas específicas de los archivos
+    # 3. Definir las rutas absolutas calculadas para los archivos
     ruta_entrada = data_dir / "datos_bancomundial_chl_1960_2026.csv"
     ruta_salida = data_dir / "datos_bancomundial_procesados.csv"
 
-    # 2. Control de excepciones: Validación de existencia del archivo origen
+    # Verificación de seguridad de la existencia del archivo de entrada
     if not ruta_entrada.exists():
-        print(f"[ERROR] No se localizó el archivo origen en: {ruta_entrada}")
-        print("Asegúrate de que el archivo CSV se encuentre dentro de la carpeta 'Data/'.")
+        print(f"[ERROR] No se encontró el archivo original en la ruta esperada:\n --> {ruta_entrada}")
         return
 
-    print(f"[INFO] Iniciando lectura de datos desde: {ruta_entrada}")
-    # Carga del dataset en un DataFrame de Pandas
+    print(f"[PROCESO] Cargando archivo de datos desde: {ruta_entrada.name}")
+    # Lectura del CSV original
     df = pd.read_csv(ruta_entrada)
-    print(f"[INFO] Dataset cargado correctamente. Registros detectados: {len(df)}")
+    print(f"[PROCESO] Registros importados: {len(df)}")
 
-    # TAREA 1: Insertar la columna 'ID' correlativa al inicio (índice 0)
-    # Genera una serie secuencial que va desde 1 hasta el total de filas
+    # TAREA 1: Insertar la columna 'ID' autoincremental al inicio (columna 0)
     df.insert(0, 'ID', range(1, len(df) + 1))
     
     # TAREA 2: Crear la columna 'origen' asignando el valor constante 'WB'
     df['origen'] = 'WB'
 
-    # 3. Guardado defensivo: Asegura la persistencia en el directorio destino
+    # Asegurar de forma defensiva que el directorio 'Data' exista antes de escribir
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    # 4. Exportación final de los datos transformados
-    print(f"[INFO] Exportando datos procesados a: {ruta_salida}")
-    # index=False evita que Pandas escriba el índice implícito por defecto
+    # Guardar el DataFrame resultante en la carpeta Data
+    print(f"[PROCESO] Exportando archivo transformado a: {ruta_salida.name}")
     df.to_csv(ruta_salida, index=False)
-    print("[ÉXITO] El proceso ha concluido de forma satisfactoria.")
+    print("[ÉXITO] El archivo procesado ha sido generado correctamente.")
 
 if __name__ == "__main__":
-    ejecutar_pipeline_banco_mundial()
+    procesar_datos_banco_mundial()

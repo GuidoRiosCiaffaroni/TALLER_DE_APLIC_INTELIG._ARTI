@@ -202,7 +202,7 @@ graph TD
     style Transformacion fill:#f0fff4,stroke:#38a169,stroke-width:1px
     style Almacenamiento_Trusted fill:#feebc8,stroke:#dd6b20,stroke-width:1px
     style Consumo fill:#ebf8ff,stroke:#3182ce,stroke-width:2px
-
+```
 
 
 <video src="https://raw.githubusercontent.com/GuidoRiosCiaffaroni/TALLER_DE_APLIC_INTELIG._ARTI/main/Videos/V_01.mp4" controls width="100%">
